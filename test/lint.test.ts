@@ -104,3 +104,29 @@ test("text constants", () => {
   assert.ok(RULES_TEXT.startsWith("## Chat replies\n- Reply on one topic"));
   assert.ok(NUDGE_TEXT.startsWith("Reply on one topic, in 1-5 sentences") && !NUDGE_TEXT.includes("\n"));
 });
+
+test("longer fence is not closed by a shorter one", () => {
+  const r = lint("Done.\n\n~~~~markdown\n~~~\nA. B. C. D. E. F.\n~~~\n~~~~");
+  assert.equal(r.stats.sentences, 1);
+  assert.equal(r.ok, true);
+});
+test("double-backtick code is not prose", () => {
+  const r = lint("Use ``a. b. c. d. e. f.`` now.");
+  assert.deepEqual([r.stats.sentences, r.stats.words, r.ok], [1, 3, true]);
+});
+test("?! counts as a question", () => {
+  const r = lint("Why?! Because.");
+  assert.equal(r.stats.questions, 1);
+  assert.deepEqual(rules(r), ["question_not_last"]);
+});
+test("table without outer pipes is a table", () => {
+  assert.deepEqual(rules(lint("Name | Value\n--- | ---\nA | B")), ["structure_table"]);
+});
+test("underlined heading is a heading", () => {
+  assert.deepEqual(rules(lint("Title\n=====\n\nDone.")), ["structure_heading"]);
+});
+test("empty input fails", () => assert.equal(lint("").ok, false));
+test("word count excludes the footer", () => {
+  const r = lint("Hello.\n\nI saved the notes.");
+  assert.deepEqual([r.stats.footer, r.stats.words], [true, 1]);
+});

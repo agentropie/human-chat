@@ -14,7 +14,7 @@ function parseArgs(argv: string[], valued: string[], flags: string[]) {
     if (!a.startsWith("--")) pos.push(a);
     else if (flags.includes(a.slice(2))) opts[a.slice(2)] = true;
     else if (valued.includes(a.slice(2))) {
-      if (i + 1 >= argv.length) throw new Usage(`${a} needs a value`);
+      if (i + 1 >= argv.length || argv[i + 1].startsWith("--")) throw new Usage(`${a} needs a value`);
       opts[a.slice(2)] = argv[++i];
     } else throw new Usage(`unknown option ${a}`);
   }

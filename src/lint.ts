@@ -57,6 +57,20 @@ function splitSentences(par: string): string[] {
   return out;
 }
 
+// Remove fenced blocks. A fence closes only on the same char, at least as long as the opener.
+function stripFences(text: string): string {
+  const out: string[] = [];
+  let open: { ch: string; len: number } | null = null;
+  for (const line of text.split("\n")) {
+    const m = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+    if (!open) {
+      if (m) open = { ch: m[1][0], len: m[1].length };
+      else out.push(line);
+    } else if (m && m[1][0] === open.ch && m[1].length >= open.len && !m[2].trim()) open = null;
+  }
+  return out.join("\n");
+}
+
 export function lint(text: string, opts?: { mode?: ReplyMode }): LintResult {
   const marker = extractMarker(text);
   const body = marker.body;
@@ -64,7 +78,7 @@ export function lint(text: string, opts?: { mode?: ReplyMode }): LintResult {
   const violations: Violation[] = [];
   if (!opts?.mode && marker.error) violations.push({ rule: "bad_marker", detail: marker.error });
 
-  const noCode = body.replace(/^ {0,3}(```|~~~)[\s\S]*?^ {0,3}\1.*$/gm, "").replace(/`[^`\n]*`/g, "X");
+  const noCode = stripFences(body).replace(/(?<!`)(`+)(?!`)[^\n]*?(?<!`)\1(?!`)/g, "X");
   const paragraphs = noCode.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
 
   let structure = { heading: "", table: "", list: "", bold: "" };
@@ -73,9 +87,10 @@ export function lint(text: string, opts?: { mode?: ReplyMode }): LintResult {
     const lines = par.split("\n");
     if (/^\*\*[^*\n]+[.:]\*\*/.test(par)) structure.bold ||= lines[0].slice(0, 40);
     const keep: string[] = [];
-    for (const line of lines) {
-      if (/^\s{0,3}#{1,6}\s/.test(line)) structure.heading ||= line.trim();
-      else if (/^\s*\|/.test(line)) structure.table ||= line.trim().slice(0, 40);
+    for (const [i, line] of lines.entries()) {
+      const next = lines[i + 1] ?? "";
+      if (/^\s{0,3}#{1,6}\s/.test(line) || (i + 1 < lines.length && /^ {0,3}(=+|-{2,})\s*$/.test(next) && line.trim() && !LIST_ITEM.test(line))) structure.heading ||= line.trim();
+      else if (/^\s*\|/.test(line) || (line.includes("|") && /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?\s*$/.test(next))) structure.table ||= line.trim().slice(0, 40);
       else if (LIST_ITEM.test(line)) structure.list ||= line.trim().slice(0, 40);
       else keep.push(line.trim());
     }
@@ -89,13 +104,14 @@ export function lint(text: string, opts?: { mode?: ReplyMode }): LintResult {
     prose.pop();
   }
   const sentences = prose.flatMap(splitSentences);
-  const questions = sentences.filter((s) => /\?["'”’)\]]*$/.test(s)).length;
-  const words = noCode.split(/\s+/).filter(Boolean).length;
+  const questions = sentences.filter((s) => /\?[?!]*["'”’)\]]*$/.test(s)).length;
+  const words = prose.join(" ").split(/\s+/).filter(Boolean).length;
 
   if (mode.mode === "short") {
+    if (sentences.length === 0) violations.push({ rule: "too_many_sentences", detail: "0 sentences, min 1" });
     if (sentences.length > 5) violations.push({ rule: "too_many_sentences", detail: `${sentences.length} sentences, max 5` });
     if (questions > 1) violations.push({ rule: "too_many_questions", detail: `${questions} questions, max 1` });
-    if (questions >= 1 && !/\?["'”’)\]]*$/.test(sentences[sentences.length - 1])) {
+    if (questions >= 1 && !/\?[?!]*["'”’)\]]*$/.test(sentences[sentences.length - 1])) {
       violations.push({ rule: "question_not_last", detail: "the question is not the last sentence" });
     }
     if (structure.heading) violations.push({ rule: "structure_heading", detail: structure.heading });

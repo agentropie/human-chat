@@ -57,3 +57,11 @@ test("rules, nudge, topics", () => {
   const out = run(["topics", "--dir", dir, "--days", "7"]).stdout;
   assert.match(out, /^plan \(2 open\): .*plan\.md$/m);
 });
+
+test("option does not take a flag as its value", () => {
+  assert.equal(run(["lint", "--agent", "--json"], "Hello.").status, 2);
+});
+
+test("option does not take a flag as its value", () => {
+  assert.equal(run(["lint", "--agent", "--json"], "Hello.").status, 2);
+});
