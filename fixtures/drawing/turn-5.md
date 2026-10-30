@@ -1,0 +1,1 @@
+What exactly does it cover? The plan listed the name, logo, product names and aggregate numbers. Do photos from the Nov 3 tasting count too, and do individual staff have to OK their own faces and voices? This decides what my weekly story collection can pull from the Willow folder without asking.
