@@ -78,7 +78,7 @@ Rule ids for violations: `too_many_sentences`, `sentence_too_long` (short mode, 
 - Remove fenced code blocks. Replace inline code spans with a single token.
 - Ignore table rows and list items for the prose count (they are structure violations in short mode).
 - Split on `.`, `!`, `?` (and `…`) followed by whitespace or end of text. Also count a final paragraph with no end punctuation as one sentence (a teaser line such as "There's a pending issue about consent though").
-- Do not split on: `e.g.`, `i.e.`, `etc.`, `vs.`, `Mr.`, `Dr.`, decimals (`1.5`), file names and URLs (`campaign-brief.html`, `yoplai.com`), version numbers.
+- Do not split on: `e.g.`, `i.e.`, `etc.`, `vs.`, `Mr.`, `Dr.`, decimals (`1.5`), file names and URLs (`newsletter-plan.html`, `maplestreet.example`), version numbers.
 - A line ending with `:` that introduces a table or list is part of the next sentence count only once (count it as one sentence).
 - Count words with a simple whitespace split on the prose.
 
@@ -137,7 +137,7 @@ human-chat topics --dir DIR [--days 7]   # plans with open topics: "<title> (<n>
 
 Fixtures are in `fixtures/`. Do not edit them.
 
-- `fixtures/fail/connie-1.md`, `connie-2.md`, `connie-3.md`: fail in short mode.
+- `fixtures/fail/long-1.md`, `long-2.md`, `long-3.md`: fail in short mode.
 - `fixtures/drawing/turn-1.md`, `turn-6.md`: pass in short mode.
 - `fixtures/drawing/turn-2.md` (`reference` or `comparison`), `turn-3.md` (`several_points_one_topic`), `turn-4.md` (`several_points_one_topic`), `turn-5.md` (`several_points_one_topic`), `turn-7.md` (`user_asked`), `turn-8.md` (`steps`): fail in short mode, pass in long mode with that type and a note.
 - Unit tests: sentence splitter edge cases from section 3, footer handling, question-not-last, each structure rule, code blocks ignored, marker parse (valid, bad syntax, bad type, empty note), `extractMarker` strips the marker from the body.

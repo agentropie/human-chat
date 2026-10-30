@@ -8,7 +8,7 @@ const rules = (r: ReturnType<typeof lint>) => r.violations.map((v) => v.rule);
 const NOTE = "needs more room here";
 
 for (const n of [1, 2, 3]) {
-  test(`fail/connie-${n} fails in short mode`, () => assert.equal(lint(fx(`fail/connie-${n}.md`)).ok, false));
+  test(`fail/long-${n} fails in short mode`, () => assert.equal(lint(fx(`fail/long-${n}.md`)).ok, false));
 }
 for (const n of [1, 6]) {
   test(`drawing/turn-${n} passes in short mode`, () => assert.equal(lint(fx(`drawing/turn-${n}.md`)).ok, true));
@@ -29,7 +29,7 @@ test("turn-2 also passes as comparison", () => {
 });
 
 test("sentence splitter edge cases", () => {
-  const t = "Use e.g. a tool, i.e. this one, etc. vs. that. Mr. Smith has 1.5 units in campaign-brief.html at yoplai.com v1.2.3. Done!";
+  const t = "Use e.g. a tool, i.e. this one, etc. vs. that. Mr. Smith has 1.5 units in newsletter-plan.html at maplestreet.example v1.2.3. Done!";
   assert.equal(lint(t).stats.sentences, 3);
   assert.equal(lint("One. Two! Three? Four… Five").stats.sentences, 5);
   assert.equal(lint("See `memory.md.` now. Next.").stats.sentences, 2);

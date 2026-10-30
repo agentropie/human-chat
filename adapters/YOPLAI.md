@@ -1,9 +1,9 @@
 # Yoplai adapter
 
-Read COMMON.md first. Worktree: `/Users/thinh/.worktrees/yoplai-human-chat` (branch `human-chat`, repo `~/code/algodyn/yoplai/platform`). Read its AGENTS.md / CLAUDE.md first and follow it. pnpm, vitest (`pnpm test:gateway`, single file `pnpm exec vitest run <file>`).
+Read COMMON.md first. Worktree: `<yoplai-worktree>` (branch `human-chat`, repo `<yoplai-checkout>`). Read its AGENTS.md / CLAUDE.md first and follow it. pnpm, vitest (`pnpm test:gateway`, single file `pnpm exec vitest run <file>`).
 
 Design (from a scout, verify each line ref):
-- Dependency: add `human-chat` as `"file:/Users/thinh/code/agentropy/human-chat"` in `apps/gateway/package.json` for now (local only; a git URL replaces it later). Import in process.
+- Dependency: add `human-chat` as `"file:<core>"` in `apps/gateway/package.json` for now (local only; a git URL replaces it later). Import in process.
 - Extension: a core factory extension `human-chat` like `session-history/index.ts`, registered in `apps/gateway/src/extensions/registry.ts` (~451-454). It owns the `reply_mode` tool and `getSystemPromptContributions` (rules). Enabled only when `extensions.human-chat` is in agent.yaml (core extensions may default on: make sure this one defaults OFF).
 - The hook context lacks the run source. Add `source`, `sender`, `background` to `RunIdentity` / `buildHookContext` (`extensions/runtime.ts` ~18, ~38) only as far as needed.
 - Nudge: host Pi `sdk/pi/adapter.ts` ~707 (model only, not history). Sandbox: `sdk/container/input-builder.ts` ~82. Do not change `params.message` before `beginUserTurn` (`runner.ts` ~426).

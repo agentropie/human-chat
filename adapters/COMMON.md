@@ -1,6 +1,6 @@
 # Adapter contract (DAR and Yoplai)
 
-Core: `/Users/thinh/code/agentropy/human-chat` (read SPEC.md). Do not change the core API. If the core needs a change, stop and report it.
+Core: `<core>` (read SPEC.md). Do not change the core API. If the core needs a change, stop and report it.
 
 ## Switch
 - The adapter is off unless `agent.yaml` has `extensions.human-chat` (an empty block `human-chat: {}` or `human-chat:` turns it on, `enabled: false` turns it off).
