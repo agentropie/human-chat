@@ -21,7 +21,8 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "tsc && node --test test/*.test.ts"
+    "test": "tsc && node --test test/*.test.ts",
+    "prepare": "tsc"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
