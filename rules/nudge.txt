@@ -1,1 +1,1 @@
-Reply on one topic, in 1-5 short sentences, with one question at most. Keep the rest in the topic plan. For more room, declare long mode with a reason type.
+Reply on one topic, in 1-{max_sentences} short sentences, with one question at most. Keep the rest in the topic plan. For more room, declare long mode with a reason type.

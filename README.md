@@ -27,6 +27,21 @@ The agent declares long mode with the `reply_mode` tool (`{ mode: "long", type, 
 
 The rules text for AGENTS.md is in `rules/chat-replies.md`. The one-line nudge for each user turn is in `rules/nudge.txt`.
 
+## Limits
+
+The prompt shows each `max`. The lint fails only above `max + leeway`. Defaults:
+
+```yaml
+extensions:
+  human-chat:
+    max_sentences: 5        # sentences in a short reply
+    sentence_leeway: 0
+    max_sentence_words: 25  # words in one sentence
+    word_leeway: 5
+```
+
+Library: `lint(text, { limits })`, `rulesText(limits)`, `nudgeText(limits)`. CLI: `--max-sentences`, `--sentence-leeway`, `--max-sentence-words`, `--word-leeway` on `lint`, `rules`, and `nudge`.
+
 ## CLI
 
 ```sh

@@ -144,3 +144,22 @@ test("sentence_too_long: long mode lifts the limit", () => {
   const long = Array.from({ length: 40 }, (_, i) => `w${i}`).join(" ") + ".";
   assert.equal(lint(long, { mode: { mode: "long", type: "user_asked", note: "the user asked" } }).ok, true);
 });
+
+test("limits: leeway tolerates sentences and words over the max", () => {
+  const six = "One. Two. Three. Four. Five. Six.";
+  assert.equal(lint(six).ok, false);
+  assert.equal(lint(six, { limits: { sentenceLeeway: 1 } }).ok, true);
+  assert.equal(lint(six, { limits: { maxSentences: 6 } }).ok, true);
+  const s28 = Array.from({ length: 28 }, (_, i) => `w${i}`).join(" ") + ".";
+  assert.equal(lint(s28).ok, true); // default 25 + 5 leeway
+  assert.equal(lint(s28, { limits: { wordLeeway: 0 } }).ok, false);
+  assert.equal(lint(s28, { limits: { maxSentenceWords: 20, wordLeeway: 8 } }).ok, true);
+});
+
+test("limits: rules and nudge text show the max", async () => {
+  const { rulesText, nudgeText } = await import("../dist/index.js");
+  assert.ok(rulesText({ maxSentences: 3, maxSentenceWords: 18 }).includes("in 1-3 sentences") );
+  assert.ok(rulesText({ maxSentenceWords: 18 }).includes("18 words or fewer"));
+  assert.ok(nudgeText({ maxSentences: 3 }).includes("in 1-3 short sentences"));
+  assert.ok(!RULES_TEXT.includes("{"));
+});

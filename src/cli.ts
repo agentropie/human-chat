@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { appendFileSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import { NUDGE_TEXT, RULES_TEXT, lint, type ReasonType, type ReplyMode } from "./lint.js";
+import { lint, nudgeText, rulesText, type Limits, type ReasonType, type ReplyMode } from "./lint.js";
 import { listOpenPlans, openTopics, parsePlan } from "./plan.js";
 
 class Usage extends Error {}
@@ -21,8 +21,26 @@ function parseArgs(argv: string[], valued: string[], flags: string[]) {
   return { opts, pos };
 }
 
+const LIMIT_FLAGS: Record<string, keyof Limits> = {
+  "max-sentences": "maxSentences",
+  "sentence-leeway": "sentenceLeeway",
+  "max-sentence-words": "maxSentenceWords",
+  "word-leeway": "wordLeeway",
+};
+
+function readLimits(opts: Record<string, string | boolean>): Partial<Limits> {
+  const out: Partial<Limits> = {};
+  for (const [flag, key] of Object.entries(LIMIT_FLAGS)) {
+    if (opts[flag] === undefined) continue;
+    const n = Number(opts[flag]);
+    if (!Number.isInteger(n) || n < 0) throw new Usage(`--${flag} must be a whole number`);
+    out[key] = n;
+  }
+  return out;
+}
+
 function runLint(args: string[]): number {
-  const { opts, pos } = parseArgs(args, ["mode", "type", "note", "log", "agent", "session"], ["json"]);
+  const { opts, pos } = parseArgs(args, ["mode", "type", "note", "log", "agent", "session", ...Object.keys(LIMIT_FLAGS)], ["json"]);
   if (pos.length > 1) throw new Usage("lint takes at most one FILE");
   let mode: ReplyMode | undefined;
   if (opts.mode === "short") mode = { mode: "short" };
@@ -32,7 +50,7 @@ function runLint(args: string[]): number {
   } else if (opts.mode !== undefined) throw new Usage("--mode must be short or long");
 
   const text = readFileSync(pos[0] ?? 0, "utf8");
-  const res = lint(text, { mode });
+  const res = lint(text, { mode, limits: readLimits(opts) });
   if (res.ok && res.mode.mode === "long" && typeof opts.log === "string") {
     const line = { ts: new Date().toISOString(), agent: opts.agent ?? null, session: opts.session ?? null, type: res.mode.type, note: res.mode.note, words: res.stats.words };
     appendFileSync(opts.log, JSON.stringify(line) + "\n");
@@ -65,8 +83,12 @@ function main(argv: string[]): number {
   try {
     if (cmd === "lint") return runLint(rest);
     if (cmd === "topics") return runTopics(rest);
-    if (cmd === "rules") { process.stdout.write(RULES_TEXT + "\n"); return 0; }
-    if (cmd === "nudge") { process.stdout.write(NUDGE_TEXT + "\n"); return 0; }
+    if (cmd === "rules" || cmd === "nudge") {
+      const { opts } = parseArgs(rest, Object.keys(LIMIT_FLAGS), []);
+      const limits = readLimits(opts);
+      process.stdout.write((cmd === "rules" ? rulesText(limits) : nudgeText(limits)) + "\n");
+      return 0;
+    }
     throw new Usage("usage: human-chat lint|rules|nudge|topics");
   } catch (e) {
     if (e instanceof Usage) { process.stderr.write(`${e.message}\n`); return 2; }

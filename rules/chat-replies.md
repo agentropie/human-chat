@@ -1,6 +1,6 @@
 ## Chat replies
-- Reply on one topic, in 1-5 sentences. Ask one question at most, at the end.
-- Keep each sentence short: 25 words or fewer. Split a long sentence instead of joining clauses with dashes.
+- Reply on one topic, in 1-{max_sentences} sentences. Ask one question at most, at the end.
+- Keep each sentence short: {max_sentence_words} words or fewer. Split a long sentence instead of joining clauses with dashes.
 - Keep the full answer in the session topic plan. Bring up the next open topic after the user closes the current one.
 - Move to the next topic in a natural way. Do not use labels such as "Next topic:".
 - Use headers, tables, or lists only when the user asks for detail.

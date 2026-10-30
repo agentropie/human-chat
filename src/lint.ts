@@ -15,9 +15,37 @@ export interface LintResult {
   stats: { sentences: number; questions: number; words: number; footer: boolean };
 }
 
+/** Limits for short mode. The prompt shows `max`. The lint fails only above `max + leeway`. */
+export interface Limits {
+  maxSentences: number;
+  sentenceLeeway: number;
+  maxSentenceWords: number;
+  wordLeeway: number;
+}
+export const DEFAULT_LIMITS: Limits = { maxSentences: 5, sentenceLeeway: 0, maxSentenceWords: 25, wordLeeway: 5 };
+
+/** Fill missing or invalid fields from DEFAULT_LIMITS. */
+export function resolveLimits(partial?: Partial<Limits>): Limits {
+  const out = { ...DEFAULT_LIMITS };
+  for (const k of Object.keys(out) as (keyof Limits)[]) {
+    const v = partial?.[k];
+    const min = k.startsWith("max") ? 1 : 0;
+    if (typeof v === "number" && Number.isInteger(v) && v >= min) out[k] = v;
+  }
+  return out;
+}
+
 const rulesDir = join(dirname(fileURLToPath(import.meta.url)), "..", "rules");
-export const RULES_TEXT: string = readFileSync(join(rulesDir, "chat-replies.md"), "utf8").trimEnd();
-export const NUDGE_TEXT: string = readFileSync(join(rulesDir, "nudge.txt"), "utf8").trimEnd();
+const RULES_TEMPLATE = readFileSync(join(rulesDir, "chat-replies.md"), "utf8").trimEnd();
+const NUDGE_TEMPLATE = readFileSync(join(rulesDir, "nudge.txt"), "utf8").trimEnd();
+function fill(template: string, limits?: Partial<Limits>): string {
+  const l = resolveLimits(limits);
+  return template.replaceAll("{max_sentences}", String(l.maxSentences)).replaceAll("{max_sentence_words}", String(l.maxSentenceWords));
+}
+export function rulesText(limits?: Partial<Limits>): string { return fill(RULES_TEMPLATE, limits); }
+export function nudgeText(limits?: Partial<Limits>): string { return fill(NUDGE_TEMPLATE, limits); }
+export const RULES_TEXT: string = rulesText();
+export const NUDGE_TEXT: string = nudgeText();
 
 // Marker: <!-- reply-mode: long | type: comparison | note: some words -->
 // Syntax only. The type and note are validated by lint(), so an unknown type
@@ -37,7 +65,6 @@ export function extractMarker(text: string): { mode: ReplyMode | null; body: str
 
 const ABBREV = new Set(["e.g.", "i.e.", "etc.", "vs.", "mr.", "mrs.", "ms.", "dr.", "prof.", "st."]);
 const FOOTER = /^I (saved|updated|changed|created|wrote|added|noted|stored)\b/i;
-export const MAX_SENTENCE_WORDS = 30;
 const LIST_ITEM = /^\s*([-*+•]|\d+[.)])\s+/;
 
 // Split one paragraph into sentences. A trailing fragment without end punctuation counts too.
@@ -72,7 +99,10 @@ function stripFences(text: string): string {
   return out.join("\n");
 }
 
-export function lint(text: string, opts?: { mode?: ReplyMode }): LintResult {
+export function lint(text: string, opts?: { mode?: ReplyMode; limits?: Partial<Limits> }): LintResult {
+  const lim = resolveLimits(opts?.limits);
+  const sentenceCap = lim.maxSentences + lim.sentenceLeeway;
+  const wordCap = lim.maxSentenceWords + lim.wordLeeway;
   const marker = extractMarker(text);
   const body = marker.body;
   const mode: ReplyMode = opts?.mode ?? marker.mode ?? { mode: "short" };
@@ -110,11 +140,11 @@ export function lint(text: string, opts?: { mode?: ReplyMode }): LintResult {
 
   if (mode.mode === "short") {
     if (sentences.length === 0) violations.push({ rule: "too_many_sentences", detail: "0 sentences, min 1" });
-    if (sentences.length > 5) violations.push({ rule: "too_many_sentences", detail: `${sentences.length} sentences, max 5` });
+    if (sentences.length > sentenceCap) violations.push({ rule: "too_many_sentences", detail: `${sentences.length} sentences, max ${lim.maxSentences}` });
     const longest = sentences.reduce((a, s) => (s.split(/\s+/).length > a.split(/\s+/).length ? s : a), "");
     const longWords = longest ? longest.split(/\s+/).filter(Boolean).length : 0;
-    if (longWords > MAX_SENTENCE_WORDS) {
-      violations.push({ rule: "sentence_too_long", detail: `${longWords} words, max ${MAX_SENTENCE_WORDS}: "${longest.slice(0, 40)}"` });
+    if (longWords > wordCap) {
+      violations.push({ rule: "sentence_too_long", detail: `${longWords} words, max ${lim.maxSentenceWords}: "${longest.slice(0, 40)}"` });
     }
     if (questions > 1) violations.push({ rule: "too_many_questions", detail: `${questions} questions, max 1` });
     if (questions >= 1 && !/\?[?!]*["'”’)\]]*$/.test(sentences[sentences.length - 1])) {
@@ -137,7 +167,7 @@ export function lint(text: string, opts?: { mode?: ReplyMode }): LintResult {
   const hint = ok
     ? ""
     : `Your reply breaks the short reply rules: ${violations.map((v) => `${v.rule} (${v.detail})`).join("; ")}. ` +
-      "Keep one topic in 1-5 short sentences with at most one question, at the end. Keep the rest in the topic plan. " +
+      `Keep one topic in 1-${lim.maxSentences} sentences of ${lim.maxSentenceWords} words or fewer, with at most one question, at the end. Keep the rest in the topic plan. ` +
       `If this reply really needs more room, declare long mode with a type from: ${REASON_TYPES.join(", ")}, and a short note.`;
   return { ok, mode, violations, hint, stats: { sentences: sentences.length, questions, words, footer } };
 }
