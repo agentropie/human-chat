@@ -78,4 +78,6 @@ When the switch is on, the adapter adds the rules to the system prompt, adds the
 
 When the switch is off, the host behaves exactly as before.
 
+Yoplai uses a pnpm `file:` dependency, and pnpm copies the package. After a change here, run `npm run build`, then `pnpm install --force` in the Yoplai checkout, and restart the gateway. DAR reads `dist/` and `rules/` from this folder directly.
+
 `pi/extension.ts` is a Pi extension for DAR. It acts only on prompts that DAR marks as human turns.
