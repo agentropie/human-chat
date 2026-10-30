@@ -12,7 +12,12 @@ npm run build   # writes dist/
 npm test
 ```
 
-Node 22 or later. No runtime dependencies. `dist/` is in git, so a git install needs no build step. After a change in `src/`, run `npm run build` and commit `dist/` too.
+Node 22 or later. No runtime dependencies. `dist/` is not in git. The `prepare` script builds it on install. pnpm runs it for a git dependency only when the host allows it, for example in `pnpm-workspace.yaml`:
+
+```yaml
+allowBuilds:
+  'human-chat@git+https://github.com/agentropie/human-chat.git': true
+```
 
 ## Reply rules
 
