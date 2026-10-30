@@ -37,6 +37,7 @@ export function extractMarker(text: string): { mode: ReplyMode | null; body: str
 
 const ABBREV = new Set(["e.g.", "i.e.", "etc.", "vs.", "mr.", "mrs.", "ms.", "dr.", "prof.", "st."]);
 const FOOTER = /^I (saved|updated|changed|created|wrote|added|noted|stored)\b/i;
+export const MAX_SENTENCE_WORDS = 30;
 const LIST_ITEM = /^\s*([-*+•]|\d+[.)])\s+/;
 
 // Split one paragraph into sentences. A trailing fragment without end punctuation counts too.
@@ -110,6 +111,11 @@ export function lint(text: string, opts?: { mode?: ReplyMode }): LintResult {
   if (mode.mode === "short") {
     if (sentences.length === 0) violations.push({ rule: "too_many_sentences", detail: "0 sentences, min 1" });
     if (sentences.length > 5) violations.push({ rule: "too_many_sentences", detail: `${sentences.length} sentences, max 5` });
+    const longest = sentences.reduce((a, s) => (s.split(/\s+/).length > a.split(/\s+/).length ? s : a), "");
+    const longWords = longest ? longest.split(/\s+/).filter(Boolean).length : 0;
+    if (longWords > MAX_SENTENCE_WORDS) {
+      violations.push({ rule: "sentence_too_long", detail: `${longWords} words, max ${MAX_SENTENCE_WORDS}: "${longest.slice(0, 40)}"` });
+    }
     if (questions > 1) violations.push({ rule: "too_many_questions", detail: `${questions} questions, max 1` });
     if (questions >= 1 && !/\?[?!]*["'”’)\]]*$/.test(sentences[sentences.length - 1])) {
       violations.push({ rule: "question_not_last", detail: "the question is not the last sentence" });
@@ -131,7 +137,7 @@ export function lint(text: string, opts?: { mode?: ReplyMode }): LintResult {
   const hint = ok
     ? ""
     : `Your reply breaks the short reply rules: ${violations.map((v) => `${v.rule} (${v.detail})`).join("; ")}. ` +
-      "Keep one topic in 1-5 sentences with at most one question, at the end. Keep the rest in the topic plan. " +
+      "Keep one topic in 1-5 short sentences with at most one question, at the end. Keep the rest in the topic plan. " +
       `If this reply really needs more room, declare long mode with a type from: ${REASON_TYPES.join(", ")}, and a short note.`;
   return { ok, mode, violations, hint, stats: { sentences: sentences.length, questions, words, footer } };
 }

@@ -16,7 +16,7 @@ Node 22 or later. No runtime dependencies.
 
 ## Reply rules
 
-- Short mode (default): 1-5 sentences, max one question at the end, no headings, tables, lists, or bold labels. Code blocks do not count. A last one-line footer about background work ("I saved X in `memory.md`.") does not count.
+- Short mode (default): 1-5 sentences of 30 words or fewer, max one question at the end, no headings, tables, lists, or bold labels. Code blocks do not count. A last one-line footer about background work ("I saved X in `memory.md`.") does not count.
 - Long mode: the agent declares it before the reply, with a reason type and a short note. Types: `user_asked`, `comparison`, `several_points_one_topic`, `steps`, `reference`. Long mode lifts the sentence, question, and structure limits.
 
 The agent declares long mode with the `reply_mode` tool (`{ mode: "long", type, note }`), or with a hidden marker at the start of the reply:

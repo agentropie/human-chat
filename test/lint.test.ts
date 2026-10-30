@@ -102,7 +102,7 @@ test("marker: valid marker lifts limits, body is stripped", () => {
 
 test("text constants", () => {
   assert.ok(RULES_TEXT.startsWith("## Chat replies\n- Reply on one topic"));
-  assert.ok(NUDGE_TEXT.startsWith("Reply on one topic, in 1-5 sentences") && !NUDGE_TEXT.includes("\n"));
+  assert.ok(NUDGE_TEXT.startsWith("Reply on one topic, in 1-5 short sentences") && !NUDGE_TEXT.includes("\n"));
 });
 
 test("longer fence is not closed by a shorter one", () => {
@@ -129,4 +129,18 @@ test("empty input fails", () => assert.equal(lint("").ok, false));
 test("word count excludes the footer", () => {
   const r = lint("Hello.\n\nI saved the notes.");
   assert.deepEqual([r.stats.footer, r.stats.words], [true, 1]);
+});
+
+test("sentence_too_long: a sentence over 30 words fails in short mode", () => {
+  const long = Array.from({ length: 31 }, (_, i) => `w${i}`).join(" ") + ".";
+  const r = lint(`Short one. ${long}`);
+  assert.equal(r.ok, false);
+  assert.ok(r.violations.some((v) => v.rule === "sentence_too_long"));
+  const ok30 = Array.from({ length: 30 }, (_, i) => `w${i}`).join(" ") + ".";
+  assert.equal(lint(ok30).ok, true);
+});
+
+test("sentence_too_long: long mode lifts the limit", () => {
+  const long = Array.from({ length: 40 }, (_, i) => `w${i}`).join(" ") + ".";
+  assert.equal(lint(long, { mode: { mode: "long", type: "user_asked", note: "the user asked" } }).ok, true);
 });

@@ -68,7 +68,7 @@ export function openTopics(plan: Plan): Topic[];
 export function listOpenPlans(dir: string, days: number): { file: string; title: string; open: string[] }[];
 ```
 
-Rule ids for violations: `too_many_sentences`, `too_many_questions`, `question_not_last`, `structure_heading`, `structure_table`, `structure_list`, `structure_bold_label`, `bad_marker`, `bad_reason_type`, `empty_note`.
+Rule ids for violations: `too_many_sentences`, `sentence_too_long` (short mode, more than 30 words in one sentence), `too_many_questions`, `question_not_last`, `structure_heading`, `structure_table`, `structure_list`, `structure_bold_label`, `bad_marker`, `bad_reason_type`, `empty_note`.
 
 `hint` (on failure) is one short paragraph the adapter can feed back to the agent, for example:
 "Your reply breaks the short reply rules: <violations>. Keep one topic in 1-5 sentences with at most one question, at the end. Keep the rest in the topic plan. If this reply really needs more room, declare long mode with a type from: user_asked, comparison, several_points_one_topic, steps, reference, and a short note."
