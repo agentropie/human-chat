@@ -12,7 +12,7 @@ npm run build   # writes dist/
 npm test
 ```
 
-Node 22 or later. No runtime dependencies.
+Node 22 or later. No runtime dependencies. `dist/` is in git, so a git install needs no build step. After a change in `src/`, run `npm run build` and commit `dist/` too.
 
 ## Reply rules
 
