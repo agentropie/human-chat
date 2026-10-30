@@ -84,14 +84,7 @@ Rule ids for violations: `too_many_sentences`, `too_many_questions`, `question_n
 
 ## 4. Rules text (verbatim)
 
-`rules/chat-replies.md`:
-
-```
-## Chat replies
-- Reply on one topic, in 1-5 sentences. Ask one question at most, at the end.
-- Keep the full answer in the session topic plan. Bring up the next open topic after the user closes the current one.
-- Use headers, tables, or lists only when the user asks for detail.
-```
+`rules/chat-replies.md`: see the file (the source of truth). It holds the reply rules and a "Topic plan" section with the path and format of the plan file (section 5), so agents write the plan where `/topics` can read it.
 
 `rules/nudge.txt`:
 
