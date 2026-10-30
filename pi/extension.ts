@@ -10,14 +10,31 @@
  * and no `reply_mode` tool.
  */
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { NUDGE_TEXT, REASON_TYPES, RULES_TEXT } from "../dist/index.js";
+import { nudgeText, REASON_TYPES, rulesText, type Limits } from "../dist/index.js";
 
 const HUMAN_MARKER = "\u2063human-chat:human\u2063";
 const REWRITE_MARKER = "\u2063human-chat:rewrite\u2063";
 const TOOL = "reply_mode";
 
+/** Limits from the adapter env. Unset or invalid values fall back to the core defaults. */
+const ENV: Record<keyof Limits, string> = {
+	maxSentences: "HUMAN_CHAT_MAX_SENTENCES",
+	sentenceLeeway: "HUMAN_CHAT_SENTENCE_LEEWAY",
+	maxSentenceWords: "HUMAN_CHAT_MAX_SENTENCE_WORDS",
+	wordLeeway: "HUMAN_CHAT_WORD_LEEWAY",
+};
+function envLimits(): Partial<Limits> {
+	const out: Partial<Limits> = {};
+	for (const [key, name] of Object.entries(ENV) as [keyof Limits, string][]) {
+		const raw = process.env[name];
+		if (raw !== undefined && /^\d+$/.test(raw)) out[key] = Number(raw);
+	}
+	return out;
+}
+
 export default function humanChat(pi: ExtensionAPI) {
 	if (process.env.HUMAN_CHAT !== "1" || process.env.PI_SUBAGENT_CHILD === "1") return;
+	const limits = envLimits();
 	const active = (ctx: { mode?: string }) => ctx.mode !== "print";
 	/** Kind of the next run, set by `input`, consumed by `before_agent_start`. */
 	let next: "human" | "rewrite" | undefined;
@@ -32,7 +49,7 @@ export default function humanChat(pi: ExtensionAPI) {
 		defaultActive: false,
 		label: "Reply mode",
 		description:
-			"Declare long mode for the current reply only, when it needs more than 1-5 sentences or structure. " +
+			"Declare long mode for the current reply only, when it needs more than the sentence limit or structure. " +
 			`Types: ${REASON_TYPES.join(", ")}. Give a short note (3+ words) saying why.`,
 		parameters: {
 			type: "object",
@@ -72,8 +89,8 @@ export default function humanChat(pi: ExtensionAPI) {
 		next = undefined;
 		setTool(kind !== undefined);
 		if (!kind) return;
-		const systemPrompt = `${event.systemPrompt}\n\n${RULES_TEXT}`;
+		const systemPrompt = `${event.systemPrompt}\n\n${rulesText(limits)}`;
 		if (kind === "rewrite") return { systemPrompt };
-		return { systemPrompt, message: { customType: "human-chat-nudge", content: NUDGE_TEXT, display: false } };
+		return { systemPrompt, message: { customType: "human-chat-nudge", content: nudgeText(limits), display: false } };
 	});
 }
