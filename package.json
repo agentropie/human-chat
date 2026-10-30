@@ -1,5 +1,5 @@
 {
-  "name": "chat-shape",
+  "name": "human-chat",
   "version": "0.1.0",
   "description": "Short-turn chat reply linter and topic plan reader for agents",
   "type": "module",
@@ -13,7 +13,7 @@
     }
   },
   "bin": {
-    "chat-shape": "dist/cli.js"
+    "human-chat": "dist/cli.js"
   },
   "files": [
     "dist",

@@ -1,4 +1,4 @@
-# chat-shape — spec v1 (core package)
+# human-chat — spec v1 (core package)
 
 Goal: agents reply to a human in short, one-topic turns. They keep the full answer in a topic plan and give it one topic at a time. This package is the shared core. Adapters in Yoplai, DAR, Pi, Claude Code, and Codex use it. Adapters are out of scope here.
 
@@ -6,7 +6,7 @@ Goal: agents reply to a human in short, one-topic turns. They keep the full answ
 
 - TypeScript, Node >= 22, ESM. No runtime dependencies. Dev dependency: `typescript` only.
 - Build with `tsc` to `dist/`. Tests with `node --test` on the built files (or `node --test` with type stripping on `test/*.test.ts`, your choice, but `npm test` must build and run all tests).
-- `package.json`: `name: "chat-shape"`, `type: "module"`, `exports` for the library, `bin: { "chat-shape": "dist/cli.js" }`.
+- `package.json`: `name: "human-chat"`, `type: "module"`, `exports` for the library, `bin: { "human-chat": "dist/cli.js" }`.
 - Keep it small. No abstractions beyond what this spec needs.
 
 ## 1. Reply contract
@@ -127,14 +127,14 @@ Decision: ...
 ## 6. CLI
 
 ```
-chat-shape lint [FILE]            # reads FILE or stdin
+human-chat lint [FILE]            # reads FILE or stdin
     [--mode long --type <type> --note <text>]
     [--log <path.jsonl>] [--agent <id>] [--session <id>]
     [--json]
-chat-shape rules                  # print RULES_TEXT
-chat-shape nudge                  # print NUDGE_TEXT
-chat-shape topics FILE            # open topics of one plan, one line each, current first, marked "> "
-chat-shape topics --dir DIR [--days 7]   # plans with open topics: "<title> (<n> open): <file>"
+human-chat rules                  # print RULES_TEXT
+human-chat nudge                  # print NUDGE_TEXT
+human-chat topics FILE            # open topics of one plan, one line each, current first, marked "> "
+human-chat topics --dir DIR [--days 7]   # plans with open topics: "<title> (<n> open): <file>"
 ```
 
 - `lint` exit code: 0 pass, 1 fail, 2 usage error. Default output: human text (PASS/FAIL, violations, hint). `--json`: the `LintResult` as JSON.

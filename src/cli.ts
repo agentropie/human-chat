@@ -67,7 +67,7 @@ function main(argv: string[]): number {
     if (cmd === "topics") return runTopics(rest);
     if (cmd === "rules") { process.stdout.write(RULES_TEXT + "\n"); return 0; }
     if (cmd === "nudge") { process.stdout.write(NUDGE_TEXT + "\n"); return 0; }
-    throw new Usage("usage: chat-shape lint|rules|nudge|topics");
+    throw new Usage("usage: human-chat lint|rules|nudge|topics");
   } catch (e) {
     if (e instanceof Usage) { process.stderr.write(`${e.message}\n`); return 2; }
     process.stderr.write(`${(e as Error).message}\n`);

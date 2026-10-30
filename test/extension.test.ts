@@ -1,10 +1,10 @@
 import { test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
-import chatShape from "../pi/extension.ts";
+import humanChat from "../pi/extension.ts";
 import { NUDGE_TEXT, RULES_TEXT } from "../dist/index.js";
 
-const HUMAN = "\u2063chat-shape:human\u2063";
-const REWRITE = "\u2063chat-shape:rewrite\u2063";
+const HUMAN = "\u2063human-chat:human\u2063";
+const REWRITE = "\u2063human-chat:rewrite\u2063";
 
 /** Minimal in-memory ExtensionAPI: tools, handlers, and the active tool set. */
 function fakePi() {
@@ -24,7 +24,7 @@ function fakePi() {
 			active = new Set(names);
 		},
 	};
-	chatShape(pi as never);
+	humanChat(pi as never);
 	return {
 		tools,
 		active: () => active,
@@ -35,7 +35,7 @@ function fakePi() {
 
 const savedEnv = { ...process.env };
 beforeEach(() => {
-	process.env.CHAT_SHAPE = "1";
+	process.env.HUMAN_CHAT = "1";
 	delete process.env.PI_SUBAGENT_CHILD;
 });
 afterEach(() => {
@@ -60,8 +60,8 @@ test("unmarked prompt (agent sender, scheduler, no source): no rules, nudge, or 
 
 test("rewrite turn: rules and tool, no nudge", () => {
 	const pi = fakePi();
-	assert.deepEqual(pi.input(`${REWRITE}[chat-shape] shorten`), { action: "transform", text: "[chat-shape] shorten" });
-	const r = pi.start({ messageType: "user", prompt: "[chat-shape] shorten" });
+	assert.deepEqual(pi.input(`${REWRITE}[human-chat] shorten`), { action: "transform", text: "[human-chat] shorten" });
+	const r = pi.start({ messageType: "user", prompt: "[human-chat] shorten" });
 	assert.equal(r.systemPrompt, `BASE\n\n${RULES_TEXT}`);
 	assert.equal(r.message, undefined);
 	assert.ok(pi.active().has("reply_mode"));
@@ -102,10 +102,10 @@ test("marker from a non-rpc source is ignored", () => {
 	assert.equal(pi.start({ messageType: "user", prompt: "x" }), undefined);
 });
 
-test("off without CHAT_SHAPE=1 and in sub-agent children", () => {
-	delete process.env.CHAT_SHAPE;
+test("off without HUMAN_CHAT=1 and in sub-agent children", () => {
+	delete process.env.HUMAN_CHAT;
 	assert.equal(fakePi().tools.length, 0);
-	process.env.CHAT_SHAPE = "1";
+	process.env.HUMAN_CHAT = "1";
 	process.env.PI_SUBAGENT_CHILD = "1";
 	assert.equal(fakePi().tools.length, 0);
 });

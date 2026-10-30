@@ -1,4 +1,4 @@
-# chat-shape
+# human-chat
 
 Makes agents reply like people in chat: one topic per turn, 1-5 sentences, at most one question. The agent keeps the full answer in a topic plan and gives it over many short turns.
 
@@ -30,12 +30,12 @@ The rules text for AGENTS.md is in `rules/chat-replies.md`. The one-line nudge f
 ## CLI
 
 ```sh
-chat-shape lint [FILE] [--json]                                  # stdin if no FILE. Exit 0 pass, 1 fail, 2 usage
-chat-shape lint FILE --mode long --type steps --note "install steps" --log long-mode.jsonl
-chat-shape rules                                                 # print the rules text
-chat-shape nudge                                                 # print the nudge
-chat-shape topics FILE                                           # open topics of one plan, current first
-chat-shape topics --dir topics/ [--days 7]                       # plans with open topics
+human-chat lint [FILE] [--json]                                  # stdin if no FILE. Exit 0 pass, 1 fail, 2 usage
+human-chat lint FILE --mode long --type steps --note "install steps" --log long-mode.jsonl
+human-chat rules                                                 # print the rules text
+human-chat nudge                                                 # print the nudge
+human-chat topics FILE                                           # open topics of one plan, current first
+human-chat topics --dir topics/ [--days 7]                       # plans with open topics
 ```
 
 `--log` appends one JSONL line for a long-mode reply that passes: `{ ts, agent, session, type, note, words }`. It never logs the reply text.
@@ -43,7 +43,7 @@ chat-shape topics --dir topics/ [--days 7]                       # plans with op
 ## Library
 
 ```ts
-import { lint, extractMarker, RULES_TEXT, NUDGE_TEXT, REASON_TYPES, parsePlan, openTopics, listOpenPlans } from "chat-shape";
+import { lint, extractMarker, RULES_TEXT, NUDGE_TEXT, REASON_TYPES, parsePlan, openTopics, listOpenPlans } from "human-chat";
 
 const r = lint(replyText, { mode: { mode: "long", type: "steps", note: "install steps" } });
 // r.ok, r.violations, r.hint (feed back to the agent on failure), r.stats
@@ -71,8 +71,8 @@ Decision: ...
 
 | Host | Where | Switch |
 |---|---|---|
-| DAR | `crates/cap-chat/src/shape.rs` + `pi/extension.ts` (this repo) | `extensions.chat-shape: {}` in `agent.yaml` |
-| Yoplai | `apps/gateway/src/chat-shape/` | `extensions.chat-shape: {}` in `agent.yaml` |
+| DAR | `crates/cap-chat/src/shape.rs` + `pi/extension.ts` (this repo) | `extensions.human-chat: {}` in `agent.yaml` |
+| Yoplai | `apps/gateway/src/human-chat/` | `extensions.human-chat: {}` in `agent.yaml` |
 
 When the switch is on, the adapter adds the rules to the system prompt, adds the nudge to each human turn, gives the agent the `reply_mode` tool, and holds the reply until the turn ends. It lints the full reply. On a failure, it asks the agent for one hidden rewrite and sends the rewrite. Live streaming stops for these turns. Scheduled jobs, sub-agents, and agent-to-agent turns are not shaped. A user message that is exactly `/topics` lists the open topics with no model call.
 
